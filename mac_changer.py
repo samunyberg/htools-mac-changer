@@ -2,6 +2,7 @@
 
 import subprocess
 import optparse
+import re
 
 
 def get_options():
@@ -21,11 +22,35 @@ def get_options():
 
 
 def change_mac(interface, new_mac):
-    print("Changing MAC address for " + interface + " to " + new_mac)
+    print("[+] Changing MAC address for " + interface + " to " + new_mac)
     subprocess.call(["ifconfig", interface, "down"])
     subprocess.call(["ifconfig", interface, "hw", "ether", new_mac])
     subprocess.call(["ifconfig", interface, "up"])
 
 
+def get_current_mac(interface):
+    ifconfig_result = str(subprocess.check_output(["ifconfig", interface]))
+    mac_address_search_result = re.search(
+        r"\w\w:\w\w:\w\w:\w\w:\w\w:\w\w", ifconfig_result
+    )
+    if not mac_address_search_result:
+        print(
+            "[-] Unable to read MAC address for provided interface. Exiting the program..."
+        )
+        exit()
+
+    return mac_address_search_result.group(0)
+
+
 options = get_options()
+
+current_mac = str(get_current_mac(options.interface))
+print("Current MAC: " + current_mac)
+
 change_mac(options.interface, options.new_mac)
+
+current_mac = get_current_mac(options.interface)
+if current_mac != options.new_mac:
+    print("[-] Changing MAC address failed")
+else:
+    print("[+] MAC address successfully changed to " + current_mac)
