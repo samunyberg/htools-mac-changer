@@ -1,24 +1,23 @@
 #!/usr/bin/env python
 
+import argparse
 import subprocess
-import optparse
 import re
 
 
-def get_options():
-    parser = optparse.OptionParser()
-    parser.add_option(
-        "-i", "--interface", dest="interface", help="Target network interface."
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-i",
+        "--interface",
+        required=True,
+        dest="interface",
+        help="Target network interface.",
     )
-    parser.add_option("-m", "--mac", dest="new_mac", help="New MAC address.")
-    (options, arguments) = parser.parse_args()
-
-    if not options.interface:
-        parser.error("[-] Please specify an interface. Use --help for more info.")
-    elif not options.new_mac:
-        parser.error("[-] Please specify an new MAC address. Use --help for more info.")
-
-    return options
+    parser.add_argument(
+        "-m", "--mac", required=True, dest="new_mac", help="New MAC address."
+    )
+    return parser.parse_args()
 
 
 def change_mac(interface, new_mac):
@@ -42,15 +41,15 @@ def get_current_mac(interface):
     return mac_address_search_result.group(0)
 
 
-options = get_options()
+args = get_args()
 
-current_mac = str(get_current_mac(options.interface))
+current_mac = str(get_current_mac(args.interface))
 print("Current MAC: " + current_mac)
 
-change_mac(options.interface, options.new_mac)
+change_mac(args.interface, args.new_mac)
 
-current_mac = get_current_mac(options.interface)
-if current_mac != options.new_mac:
+current_mac = get_current_mac(args.interface)
+if current_mac != args.new_mac:
     print("[-] Changing MAC address failed")
 else:
     print("[+] MAC address successfully changed to " + current_mac)
